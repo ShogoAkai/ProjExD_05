@@ -40,6 +40,7 @@ class Octo_Cat:
         #if the player is inflicted with damage, it cannot be inflicted again for a certain amount of time
         #(ダメージを受けた後一定時間はダメージを受けない)
         self.life_lost_time = 0
+        self.right_shift_pressed = False
     
     #movements(動きに関して)
     def update(self,event):
@@ -54,6 +55,8 @@ class Octo_Cat:
                 self.move_down = True
             if event.key == pygame.K_SPACE:
                 self.immunity = True
+            if event.key == pygame.K_RSHIFT:  # 右シフトキーが押されたとき
+                self.right_shift_pressed = True
         elif event.type == pygame.KEYUP:
             if event.key == pygame.K_RIGHT:
                 self.move_right = False
@@ -63,6 +66,8 @@ class Octo_Cat:
                 self.move_up = False
             if event.key == pygame.K_DOWN:
                 self.move_down = False
+            if event.key == pygame.K_RSHIFT:  # 右シフトキーが離されたとき
+                self.right_shift_pressed = False
 
 #defiens ropes and dots(線とドットの親クラス)
 class Rope:
@@ -259,6 +264,7 @@ def main():
                 octo_cat.immunity = False
                 octo_cat.immunity_count = 0
                 screen.blit(octo_cat.image,(octo_cat.x,octo_cat.y))
+                
         else:
             screen.blit(octo_cat.image,(octo_cat.x,octo_cat.y))
             for rope in ropes:
@@ -268,7 +274,23 @@ def main():
                     octo_cat.life -= 1
                     if octo_cat.life == 0:
                         endFlag = True
+
         #プレーヤーのライフの数だけハートを表示する
+
+            if not octo_cat.right_shift_pressed:  # 右シフトが押されていない場合にのみ判定
+                for rope in ropes:
+                    if(rope.judge(octo_cat) == True) and (octo_cat.life_lost_time + 30 < time_elapsed):
+                        octo_cat.life_lost_time = time_elapsed
+                        octo_cat.life -= 1
+                        if octo_cat.life == 0:
+                            endFlag = True
+            else:
+                # 右シフトが押されている場合、ライフを増やす
+                octo_cat.life += 1
+                if octo_cat.life > 4:  # ライフが上限を超えないようにする
+                    octo_cat.life = 4
+
+
         for i in range(octo_cat.life - 1):
             screen.blit(heart_image,(i * 30,50))
         pygame.display.update()
